@@ -1,0 +1,1062 @@
+﻿<!DOCTYPE html>
+<html ng-app="myApp" style="height:100%;width:100%">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:">
+   
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>iBower</title>
+    <link href="./lib/bootstrap/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <!--<link href="./lib/bootstrap/bootstrap-theme.min.css" rel="stylesheet" type="text/css" />-->
+    <link href="./lib/sweetalert/sweetalert.css" rel="stylesheet" type="text/css" />
+    <link href="./css/main.css" rel="stylesheet" type="text/css" />
+    <link href="./css/jquery-ui.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body style="height:100%;width:100%; " ng-controller="MainController as main">
+    <!-- Static navbar -->
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+                        aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">iBower</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li ng-class="{'active':main.isOrder}" ng-click="setTab(1)"><a href="#">點菜系統</a></li>
+                    <li ng-class="{'active':main.isCheck}" ng-click="setTab(2)"><a href="#">結帳系統</a></li>
+                    <li ng-class="{'active':main.isChart}" ng-click="setTab(6)"><a href="#">日營收</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">語言設定 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li ng-click="main.changeLanguage('tw')"><a href="#">中文</a></li>
+                            <li ng-click="main.changeLanguage('vn')"><a href="#">Tiếng Việt</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+        <!--/.container-fluid -->
+    </nav>
+    <!-- #region VVV點餐系統VVV -->
+    <div ng-if="main.isOrder && data.menuList" ng-controller="OrderController as order">
+        <div class="order-content">
+            <div class="order-menu col-xs-8 col-sm-9">
+                <div class="row">
+                    <div ng-repeat="item in order.menuList" class="col-xs-6 col-sm-4 col-md-2 menu-item">
+                        <div ng-click="order.minus(item)" class="order-minus btn btn-default pull-left">
+                            <i class="glyphicon glyphicon-minus"></i>
+                        </div>
+                        <div ng-click="order.plus(item)" class="btn btn-default pull-left order-item" ng-class="'order-item-'+item.type">
+                            {{item[main.getLanguageName()]}}
+                        </div>
+                        <div class="order-item-content text-right">
+                            <span>&nbsp;</span>
+                            <span ng-if="order.count(item)>0">數量：{{order.count(item)}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="order-list col-xs-4 col-sm-3">
+                <div class="row">
+
+                    <div class="order-id col-xs-12 text-right">單號：{{order.orderList.id||'NEW>'+order.newId(order.orderList.id)}}</div>
+                    <div class="btn-group col-xs-12 btn-pay" data-toggle="">
+                        <label class="btn btn-lg btn-default col-xs-6">
+                            <input type="radio" name="phone" id="option1" autocomplete="off" ng-model="order.orderList.phone" value="0"> 現場
+                        </label>
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':order.orderList.phone==1}">
+                            <input type="radio" name="phone" id="option2" autocomplete="off" ng-model="order.orderList.phone" value="1"> 電話
+                        </label>
+                    </div>
+
+                    <div class="col-xs-12 btn-spicy" data-toggle="">
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':order.orderList.spicy==0}">
+                            <input type="radio" name="spicy" id="option1" autocomplete="off" ng-model="order.orderList.spicy" value="0"> 不辣
+                        </label>
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':order.orderList.spicy==1}">
+                            <input type="radio" name="spicy" id="option2" autocomplete="off" ng-model="order.orderList.spicy" value="1"> 小辣
+                        </label>
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':order.orderList.spicy==2}">
+                            <input type="radio" name="spicy" id="option3" autocomplete="off" ng-model="order.orderList.spicy" value="2"> 中辣
+                        </label>
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':order.orderList.spicy==3}">
+                            <input type="radio" name="spicy" id="option4" autocomplete="off" ng-model="order.orderList.spicy" value="3"> 大辣
+                        </label>
+                    </div>
+                    <table class="table table-hover table-striped list-table">
+                        <tr>
+                            <td>商品</td>
+                            <td class="text-right">數量</td>
+                            <td class="text-right">單價</td>
+                            <td class="text-right">價格</td>
+                        </tr>
+                        <tr ng-repeat="item in order.orderList.data|orderBy:'id'">
+                            <td class="">{{item[main.getLanguageName()]}}</td>
+                            <td class="text-right">{{item.count}}</td>
+                            <td class="text-right">{{item.price}}</td>
+                            <td class="text-right">{{item.price*item.count}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-right">
+                                折扣前：{{totalCount(order.orderList.data)}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-right">
+                                折扣額：{{order.orderList.pay}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-right">
+                                折扣後：{{totalCount(order.orderList.data)-order.orderList.pay}}
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="btn-group col-xs-12" role="group">
+                        <div ng-click="order.NintyFive()" class="btn btn-lg btn-default col-xs-12">九五折</div>
+                    </div>
+                    <div class="btn-group col-xs-12" role="group">
+                        <div ng-click="order.Ninty()" class="btn btn-lg btn-default col-xs-12">李玖哲</div>
+                    </div>
+                    <div class="btn-group col-xs-12" role="group">
+                        <div ng-click="order.KouWuYen()" class="btn btn-lg btn-default col-xs-8">扣五元</div>
+                        <div ng-click="order.JiaWuYen()" class="btn btn-lg btn-default col-xs-4">加五元</div>
+                    </div>
+                    <div class="btn-group col-xs-12" role="group">
+                        <div ng-click="order.Origin()" class="btn btn-lg btn-default col-xs-12">原價賣你</div>
+                    </div>
+                    <div class="btn-group col-xs-12" role="group">
+                        <div ng-click="order.submit()" class="btn btn-lg btn-info col-xs-8">確定</div>
+                        <div ng-click="order.clear()" class="btn btn-lg btn-danger col-xs-4">清空</div>
+                    </div>
+                    <div class="order-id col-xs-12 text-right">總共：{{main.numberCount(order.orderList.data)||0}}枝</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- #region VVV結帳系統VVV -->
+    <div ng-if="main.isCheck" ng-controller="CheckController as check">
+        <div class="col-xs-12">
+            <button class="btn btn-danger pull-left" ng-click="check.oneKeyAllDie()">一鍵掃除精靈</button>
+            <button class="btn btn-danger pull-right" ng-click="check.reId()">單號強制重算</button>
+        </div>
+        <div ng-repeat="list in check.checkList">
+            <div class="col-xs-12 col-sm-6 col-md-4">
+                <div class="check-item">
+                    <div class="order-id col-xs-12 text-right" ng-show="list.phone!=1">單號：{{list.id}}</div>
+                    <div class="order-id col-xs-12 text-right" ng-show="list.phone==1">單號：{{list.id}}(電話)</div>
+                    <div class="order-id col-xs-12 text-right">總共：{{main.numberCount(list.data)||0}}枝</div>
+                    <div class="col-xs-12 btn-spicy" data-toggle="">
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':list.spicy==0}">
+                            <input type="radio" name="spicy" id="option1" autocomplete="off" ng-model="list.spicy" value="0" disabled> 不辣
+                        </label>
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':list.spicy==1}">
+                            <input type="radio" name="spicy" id="option2" autocomplete="off" ng-model="list.spicy" value="1" disabled> 小辣
+                        </label>
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':list.spicy==2}">
+                            <input type="radio" name="spicy" id="option3" autocomplete="off" ng-model="list.spicy" value="2" disabled> 中辣
+                        </label>
+                        <label class="btn btn-lg btn-default col-xs-6" ng-class="{'active':list.spicy==3}">
+                            <input type="radio" name="spicy" id="option4" autocomplete="off" ng-model="list.spicy" value="3" disabled> 大辣
+                        </label>
+                    </div>
+                    <table class="table table-hover table-striped list-table">
+                        <tr>
+                            <td>商品</td>
+                            <td class="text-right">數量</td>
+                            <td class="text-right">單價</td>
+                            <td class="text-right">價格</td>
+                        </tr>
+                        <tr ng-repeat="item in list.data|orderBy:'id'">
+                            <td class="">{{item[main.getLanguageName()]}}</td>
+                            <td class="text-right">{{item.count}}</td>
+                            <td class="text-right">{{item.price}}</td>
+                            <td class="text-right">{{item.price*item.count}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-right">
+                                總計：{{totalCount(list.data)}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-right">
+                                折扣：{{list.pay}}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-right">
+                                折扣後：{{totalCount(list.data)-list.pay}}
+                            </td>
+                        </tr>
+                        <!--<tr>
+                            <td colspan="4">
+                                <div class="btn-group col-xs-12 btn-pay" data-toggle="">
+                                    <!--<label class="btn btn-lg btn-default col-xs-6">
+                                      <input type="radio" name="pay" id="option1" autocomplete="off" ng-model="list.pay" value="1" disabled> 已付款
+                                    </label>
+                                    <label class="btn btn-lg btn-default col-xs-12" ng-class="{'active':list.pay==0}">
+                                        <input type="radio" name="pay" id="option2" autocomplete="off" ng-model="list.pay" value="0" disabled> 未付款
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>-->
+                        <tr>
+                            <td colspan="4">
+                                <div class="btn-group col-xs-12" role="group">
+                                    <div ng-click="check.edit(list)" class="btn btn-info col-xs-4">修改</div>
+                                    <div ng-click="check.submit(list)" class="btn btn-primary col-xs-8">已交貨</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="clearfix visible-sm" ng-if="($index+1)%2==0"></div>
+            <div class="clearfix visible-md" ng-if="($index+1)%3==0"></div>
+        </div>
+    </div>
+    <!-- #region VVV系統設定VVV -->
+    <div ng-if="main.isOption" ng-controller="OptionController as menu">
+        <!-- #region 按鈕 -->
+        <div>
+            <div ng-click="menu.typeShow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">分類</div>
+            <div ng-click="menu.menuShow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">商品</div>
+        </div>
+        <div>　</div>
+        <!-- #endregion -->
+        <!-- #region 分類 -->
+        <div class="ap" style="display:none;float:none">
+            <label style="font-size:22px;float:none" for="itemClass">新增分類</label>
+            <table class="form-group">
+                <tr>
+                    <td>
+                        <input ng-model="menu.item.Type" type="number" class="form-control" id="itemClass" placeholder="新分類號碼" disabled>
+                        <input ng-model="menu.item.TypeName" type="text" class="form-control" id="itemClass" placeholder="新分類名稱" required>
+                        <button ng-click="menu.typePost(item)" type="submit" class="btn btn-primary">確認</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- #endregion -->
+
+
+        <div class="bp" style="display:none;float:none">
+            <div class="edit-view">
+                <label style="font-size:22px;float:none" for="itemClass">原料設定</label>
+                <div class="form-group">
+                    <table class="table table-hover table-striped" style="width:100%">
+                        <tr>
+                            <td style="font-size:16px;text-align:center" class="col-md-1 col-xs-1 col-lg-1 col-xm-1">序號</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">商品名稱</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">越南語</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">價格</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">分類</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-1 col-xs-1 col-lg-1 col-xm-1"></td>
+                        </tr>
+                        <tr>
+                            <td><input ng-model="menu.item.id" type="number" class="form-control" id="itemId" placeholder="Id" disabled></td>
+                            <td><input ng-model="menu.item.name" type="text" class="form-control" id="itemName" placeholder="商品名稱" required></td>
+                            <td><input ng-model="menu.item.vnname" type="text" class="form-control" id="itemvnName" placeholder="越南語"></td>
+                            <td><input ng-model="menu.item.price" type="number" class="form-control" id="itemPrice" placeholder="商品金額" required></td>
+                            <td><select ng-model="menu.item.type" ng-options="type.id as type.Name for type in Type" style="width:100%;height:32px;text-align:center;border-radius: 5px" ng-required="true"><option value="">-- 請選擇 --</option></select></td>
+                            <td><button ng-click="menu.submit(menu.item)" type="submit" class="btn btn-primary">確認</button></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+
+
+        </div>
+        <div class="list-view">
+            <table class="table table-hover table-striped">
+                <h3>商品內容</h3>
+                <tr ng-repeat="item in menu.menuList | pageStartFrom: menu.menuCurPage * menu.pageSize | limitTo: menu.pageSize" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                    <td style="text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{item.id}}</td>
+                    <td style="text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{item[main.getLanguageName()]}}</td>
+                    <td style="text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{item.price}}</td>
+                    <td style="text-align:center;display:none" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{item.type}}</td>
+                    <td><button ng-click="menu.menuUpdate(item)" type="button" class="btn btn-default" style="border-radius: 5px">修改</button></td>
+                </tr>
+                <tr style="text-align:center">
+
+                    <td colspan="4">
+                        <button class="btn btn-default" ng-click="menu.menuCurPage = 0" ng-disabled="menu.menuCurPage == 0">首頁</button>
+                        <button class="btn btn-default" ng-click="menu.menuCurPage = menu.menuCurPage - 1" ng-disabled="menu.menuCurPage <= 0">上一頁</button>
+                        當前第{{menu.menuCurPage + 1}}頁
+                        <button class="btn btn-default" ng-click="menu.menuCurPage = menu.menuCurPage + 1" ng-disabled="menu.menuCurPage >= menu.menuPageCount">下一頁</button>
+                        <button class="btn btn-default" ng-click="menu.menuCurPage = menu.menuPageCount" ng-disabled="menu.menuCurPage == menu.menuPageCount">尾頁</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="list-view">
+            <table class="table table-hover table-striped">
+                <h3>分類內容</h3>
+                <tr ng-repeat="item in menu.typeList | pageStartFrom: menu.typeCurPage * menu.pageSize | limitTo: menu.pageSize | orderBy : 'Type' " class="col-md-3 col-xs-3 col-lg-3 col-xm-3">
+                    <td class="col-md-1 col-xs-1 col-lg-1 col-xm-1"><label style="font-size:14px;text-align:center;">{{item.Type}}</label></td>
+                    <td class="col-md-7 col-xs-7 col-lg-7 col-xm-7"><label style="font-size:14px;text-align:center;">{{item.TypeName}}</label></td>
+                    <td class="col-md-2 col-xs-2 col-lg-2 col-xm-2"><button ng-click="menu.typeUpdate(item)" type="button" style="float:right" class="btn btn-default">修改</button></td>
+                    <td class="col-md-2 col-xs-2 col-lg-2 col-xm-2"><button ng-click="menu.typeDelete(item)" type="button" style="float:right" class="btn btn-danger">刪除</button></td>
+                </tr>
+                <tr style="text-align:center">
+                    <td colspan="3">
+                        <button class="btn btn-default" ng-click="menu.typeCurPage = 0" ng-disabled="menu.curPage == 0">首頁</button>
+                        <button class="btn btn-default" ng-click="menu.typeCurPage = menu.typeCurPage - 1" ng-disabled="menu.typeCurPage <= 0">上一頁</button>
+                        當前第{{menu.typeCurPage + 1}}頁
+                        <button class="btn btn-default" ng-click="menu.typeCurPage = menu.typeCurPage + 1" ng-disabled="menu.typeCurPage >= menu.typePageCount">下一頁</button>
+                        <button class="btn btn-default" ng-click="menu.typeCurPage = menu.typePageCount" ng-disabled="menu.typeCurPage == menu.typePageCount">尾頁</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+    <!-- #region VVV進貨系統VVV -->
+    <div ng-if="main.isPurchase" ng-controller="PurchaseController as PurC" style="width:100%">
+        <div>
+            <div ng-click="PurC.RawShow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">原料設定</div>
+            <div ng-click="PurC.PurShow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">進貨開關</div>
+            <div ng-click="PurC.UseShow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">使用原料</div>
+        </div>
+        <div class="raw" style="display:none;float:none">
+            <label style="font-size:22px;float:none" for="itemClass">原料設定</label>
+            <div class="form-group">
+                <table class="table table-hover table-striped" style="width:100%">
+                    <tr>
+                        <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">原料代號</td>
+                        <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">原料名稱</td>
+                        <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">原料種類</td>
+                        <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">原料單位</td>
+                    </tr>
+                    <tr>
+                        <td><input ng-model="PurC.Raw.NameId" type="text" class="form-control" id="itemClass" placeholder="Ex:不要管我" disabled></td>
+                        <td><input ng-model="PurC.Raw.Name" type="text" class="form-control" id="itemClass" placeholder="Ex:牛腿心" ng-required="true"></td>
+                        <td><select ng-model="PurC.Raw.RType" ng-options="Raw.id as Raw.Name for Raw in RType" style="width:100%;height:32px;text-align:center;border-radius: 5px" ng-required="true"><option value="">-- 請選擇 --</option></select></td>
+                        <td><input ng-model="PurC.Raw.Unit" type="text" class="form-control" id="itemClass" placeholder="Ex:公斤" ng-required="true"></td>
+                    </tr>
+                </table>
+                <button ng-click="PurC.RawPost(Raw)" type="submit" class="btn btn-primary">確認原料</button>
+            </div>
+        </div>
+        <div class="use" style="display:none;float:none;width:100%">
+            <label style="font-size:22px;float:none" for="itemClass">原料使用</label>
+            <div class="form-group">
+                <table class="table table-hover table-striped" style="width:100%">
+                    <tr>
+                        <td style="font-size:16px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">消耗名稱</td>
+                        <td style="font-size:16px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">消耗數量</td>
+                        <td style="font-size:16px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">消耗單位</td>
+
+                    </tr>
+                    <tr>
+                        <td><select ng-model="PurC.use.name" ng-options="Raw.Name as Raw.Name for Raw in PurC.RawList2" style="width:100%;height:32px;text-align:center;border-radius: 5px" class="col-md-4 col-xs-4 col-lg-4 col-xm-4" ng-required="true" ng-change="PurC.FindUnit(PurC.use.name)"><option value="">--請選擇--</option></select></td>
+                        <td><input ng-model="PurC.use.pqrt" type="text" class="form-control" id="itemClass" placeholder="輸入數量" ng-required="true"></td>
+                        <td>
+                            <label style="font-size:14px;text-align:left" class="col-md-9 col-xs-9 col-lg-9 col-xm-9">{{PurC.Unit}}</label>
+                            <button ng-click="PurC.usePlus(PurC.use)" type="button" class="btn btn-primary col-md-3 col-xs-3 col-lg-3 col-xm-3" style="max-height:30px">＋</button>
+                        </td>
+                    </tr>
+                    <tr ng-repeat="used in PurC.useItems">
+                        <td>
+                            <label style="font-size:14px;text-align:center;" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">消耗第 {{$index+1}} 項</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">{{used.name}}</label>
+                        </td>
+                        <td>
+                            <label style="font-size:14px;text-align:center;" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">消耗數量</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">{{used.pqrt}}</label>
+                        </td>
+                        <td>
+                            <label style="font-size:14px;text-align:left;" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">{{used.unit}}</label>
+                        </td>
+                    </tr>
+                </table>
+                <button ng-click="PurC.UsePost(use)" type="submit" class="btn btn-primary">確認原料</button>
+            </div>
+        </div>
+        <div class="pur" style="display:none;float:none;width:100%">
+            <label style="font-size:22px;float:none" for="itemClass">進貨填單</label>
+            <div class="form-group" style="width:100%">
+                <!--下拉式 raw-name-->
+                <table class="table table-hover table-striped" style="width:100%">
+                    <tbody style="width:auto">
+                        <tr>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">進貨廠商</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">進貨時間</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">廠商電話</td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">廠商備註</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">
+                                <input ng-model="PurC.item.firm" type="text" class="form-control" id="itemClass" placeholder="進貨廠商" ng-required="true">
+                            </td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">
+                                <input ng-model="PurC.item.createTime| date:'yyyy-MM-dd'" type="text" class="form-control" id="Eday" placeholder="進貨日期" ng-required="true">
+                            </td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">
+                                <input ng-model="PurC.item.phone" type="text" class="form-control" id="itemClass" placeholder="廠商電話" ng-required="true">
+                            </td>
+                            <td style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">
+                                <input ng-model="PurC.item.mark" type="text" class="form-control" id="itemClass" placeholder="廠商備註" ng-required="true">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="table table-hover table-striped">
+                    <tr>
+                        <td>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">進貨品項</label>
+                            <select ng-model="PurC.item.data.name" ng-options="Raw.Name as Raw.Name for Raw in PurC.RawList2" style="font-size:14px;text-align:center;border-radius: 5px" class="col-md-4 col-xs-4 col-lg-4 col-xm-4" ng-required="true">
+                                <option value="">--請選擇--</option>
+                            </select>
+                            <label style="font-size:14px;text-align:right" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">進貨價格</label>
+                        </td>
+                        <td>
+                            <input ng-model="PurC.item.data.price" type="text" class="col-md-4 col-xs-4 col-lg-4 col-xm-4" id="itemClass" style="border-radius: 5px" placeholder="進貨價格" ng-required="true">
+                            <label style="font-size:14px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">進貨數量</label>
+                            <input ng-model="PurC.item.data.pqrt" type="text" class="col-md-4 col-xs-4 col-lg-4 col-xm-4" id="itemClass" style="border-radius: 5px" placeholder="進貨數量" ng-required="true">
+                        </td>
+                        <td>
+                            <label style="font-size:14px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">進貨備註</label>
+                            <input ng-model="PurC.item.data.mark" type="text" class="col-md-6 col-xs-6 col-lg-6 col-xm-6" id="itemClass" style="border-radius: 5px" placeholder="進貨備註" ng-required="true">
+                            <button ng-click="PurC.itemPlus(PurC.item.data)" type="button" class="btn btn-primary col-md-2 col-xs-2 col-lg-2 col-xm-2" style="max-height:30px">＋</button>
+                        </td>
+                        @*<td style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">進貨價格</td>
+                            <td style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">
+                                <input ng-model="PurC.item.data.price" type="text" class="form-control" id="itemClass" placeholder="進貨價格" required>
+                            </td>*@
+                    </tr>
+                    <tr ng-repeat="purItem in PurC.purItems">
+                        <td>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">進貨品項{{$index+1}}</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{purItem.name}}</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4"></label>
+                        </td>
+                        <td>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{purItem.price}}</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4"></label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{purItem.pqrt}}</label>
+                        </td>
+                        <td>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">備註</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{purItem.mark}}</label>
+                            <label style="font-size:14px;text-align:center;" ng-click="PurC.seeupdate(purItem)" class="btn btn-info">修改</label>
+                        </td>
+                    </tr>
+                </table>
+                <button ng-click="PurC.PurPost(PurC.item.data)" type="submit" class="btn btn-primary">確認進貨</button>
+            </div>
+        </div>
+        <h3>進貨紀錄</h3>
+        <table class="table table-hover table-striped">
+            <tr>
+                <td class="col-md-12 col-xs-12 col-lg-12 col-xm-12">
+                    <label style="font-size:16px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">進貨日期</label>
+                    @*<td style="width:150px;text-align:center">進貨品項</td>
+                        <td style="width:100px;text-align:center">價格</td>
+                        <td style="width:100px;text-align:center">數量</td>
+                        <td style="width:100px;text-align:center">單位</td>
+                        <td style="width:200px;text-align:center">進貨備註</td>*@
+                    <label style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">進貨廠商</label>
+                    <label style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">廠商電話</label>
+                    <label style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">廠商備註</label>
+
+            </tr>
+            <tbody ng-repeat="list in PurC.PurList  | pageStartFrom: PurC.PurCurPage * 5 | limitTo:5">
+                <tr ng-click="PurC.showDetail(PurC.PurCurPage*5+$index)">
+                    <td class="col-md-12 col-xs-12 col-lg-12 col-xm-12 ">
+                        <label style="font-size:16px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">{{ list.createtime }}</label>
+                        <label style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">{{ list.firm }}</label>
+                        <label style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">{{ list.phone }}</label>
+                        <label style="font-size:16px;text-align:center" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">{{ list.mark }}</label>
+                        <label style="font-size:16px;text-align:center" class="btn btn-info pull-right" ng-click="PurC.update(list)">修改</label>
+                    </td>
+                </tr>
+                <tr class="{{PurC.PurCurPage*5+$index}} " style="display:none">
+                    <td>
+                        <table class="col-md-12 col-xs-12 col-lg-12 col-xm-12">
+                            <tr>
+                                <td>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">細項名稱</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">價格</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">數量</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">單位</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">備註</label>
+                                </td>
+                            </tr>
+                            <tr ng-repeat="l in list.data" @*style="display:none"*@>
+                                <td>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">{{ l.name }}</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">{{ l.price }}</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">{{ l.pqrt }}</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">{{ l.unit }}</label>
+                                    <label style="font-size:14px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{ l.mark }}</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+
+
+
+            </tbody>
+            <tr style="text-align:center">
+
+                <td colspan="9">
+                    <button class="btn btn-default" ng-click="PurC.PurCurPage = 0" ng-disabled="PurC.PurCurPage == 0">首頁</button>
+                    <button class="btn btn-default" ng-click="PurC.PurCurPage = PurC.PurCurPage - 1" ng-disabled="PurC.PurCurPage <= 0">上一頁</button>
+                    當前第{{PurC.PurCurPage + 1}}頁
+                    <button class="btn btn-default" ng-click="PurC.PurCurPage = PurC.PurCurPage + 1" ng-disabled="PurC.PurCurPage >= PurC.PurMaxPage">下一頁</button>
+                    <button class="btn btn-default" ng-click="PurC.PurCurPage = PurC.PurMaxPage" ng-disabled="PurC.PurCurPage == PurC.PurMaxPage">尾頁</button>
+                </td>
+            </tr>
+        </table>
+        <div class="Purchase-view">
+            <h3>原料單</h3>
+            <table class="table table-hover table-striped">
+                <tr style="width:100%">
+                    <td style="text-align:center" class="col-xs-1">原料代碼</td>
+                    <td style="text-align:center" class="col-xs-3">原料名稱</td>
+                    <td style="text-align:center" class="col-xs-2">原料數量</td>
+                    <td style="text-align:center" class="col-xs-3">原料單位</td>
+                    <td style="text-align:center;width:150px">種類</td>
+                </tr>
+                <tr style="width:auto" ng-repeat="Raw in PurC.RawList | pageStartFrom: PurC.RawPurPage * PurC.PageSize | limitTo:PurC.PageSize">
+                    <td style="text-align:center" class="col-xs-1">{{Raw.NameId}}</td>
+                    <td style="text-align:center" class="col-xs-3">{{Raw.Name}}</td>
+                    <td style="text-align:center" class="col-xs-2">{{Raw.Pqrt}}</td>
+                    <td style="text-align:center" class="col-xs-3">{{Raw.Unit}}</td>
+                    <td style="text-align:center;width:150px">{{Raw.RType}}</td>
+                    <td style="float:right" ng-click="PurC.RawDelete(Raw)" type="button" class="btn btn-default">刪除</td>
+                    <td style="float:right" ng-click="PurC.RawUpdate(Raw)" type="button" class="btn btn-default">修改</td>
+                </tr>
+                <tr style="text-align:center">
+
+                    <td colspan="7">
+                        <button class="btn btn-default" ng-click="PurC.RawPurPage = 0" ng-disabled="PurC.RawPurPage == 0">首頁</button>
+                        <button class="btn btn-default" ng-click="PurC.RawPurPage = PurC.RawPurPage - 1" ng-disabled="PurC.RawPurPage <= 0">上一頁</button>
+                        當前第{{PurC.RawPurPage + 1}}頁
+                        <button class="btn btn-default" ng-click="PurC.RawPurPage = PurC.RawPurPage + 1" ng-disabled="PurC.RawPurPage >= PurC.RawMaxPage">下一頁</button>
+                        <button class="btn btn-default" ng-click="PurC.RawPurPage = PurC.RawMaxPage" ng-disabled="PurC.RawPurPage == PurC.RawMaxPage">尾頁</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!-- #region VVV人事系統VVV -->
+    <div ng-if="main.isPerson" ng-controller="PersonController as PerS">
+        <div>
+            <div ng-click="PerS.MemShow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">員工編輯</div>
+            <div ng-click="PerS.MoneyShow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">新增時數</div>
+        </div>
+        <div class="money" style="display:none;float:none;width:100%">
+            <label style="font-size:22px;float:none" for="itemClass">新增時數</label>
+            <div class="form-group">
+                <table class="table table-hover table-striped" style="width:100%">
+                    <tr>
+                        <td class="col-md-2 col-xs-2 col-lg-2 col-xm-2" style=" padding:0">
+                            <label style=" padding:0;font-size:14px;text-align:center" class=" col-md-4 col-xs-4 col-lg-4 col-xm-4">員工</label>
+                            <select ng-model="PerS.dayPay.Uuid" ng-options=" man.Uuid as man.Name disable when man.IsDelete for man  in PerS.fire " style="height:32px;text-align:center;border-radius: 5px" class="col-md-8 col-xs-8 col-lg-8 col-xm-8" ng-required="true">
+                                <option value="">--請選擇--</option>
+                            </select>
+                        </td>
+                        <td class="col-md-2 col-xs-2 col-lg-2 col-xm-2" style="padding:0">
+                            <label style="padding:0;font-size:14px;text-align:center" class="col-md-5 col-xs-5 col-lg-5 col-xm-5">日期</label>
+                            <input ng-model="PerS.dayPay.Date" type="date" class=" col-md-7 col-xs-7 col-lg-7 col-xm-7" id="itemClass" placeholder="日期" ng-required="true">
+                        </td>
+                        <td class="col-md-2 col-xs-2 col-lg-2 col-xm-2" style="padding:0">
+                            <label style="padding:0;font-size:14px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">時數</label>
+                            <input ng-model="PerS.dayPay.Hours" type="text" class=" col-md-8 col-xs-8 col-lg-8 col-xm-8" id="itemClass" placeholder="輸入小時" ng-required="true">
+                        </td>
+                        <td class="col-md-2 col-xs-2 col-lg-2 col-xm-2" style="padding:0">
+                            <label style="padding:0;font-size:14px;text-align:center" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">獎金</label>
+                            <input ng-model="PerS.dayPay.Bonus" type="text" class=" col-md-8 col-xs-8 col-lg-8 col-xm-8" id="itemClass" placeholder="獎金~">
+                        </td>
+                        <td class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="padding:0">
+                            <label style="padding:0;font-size:14px;text-align:center" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">備註</label>
+                            <input ng-model="PerS.dayPay.Mark" type="text" class=" col-md-8 col-xs-8 col-lg-8 col-xm-8" id="itemClass" placeholder="備註">
+                            <button ng-click="PerS.dayPayPlus(PerS.dayPay)" type="button" class="btn btn-primary col-md-2 col-xs-2 col-lg-2 col-xm-2" style="float:right ; max-height:30px">＋</button>
+                        </td>
+                        <td>
+                            <input ng-model="PerS.dayPay.Name" type="hidden" class=" col-md-8 col-xs-8 col-lg-8 col-xm-8" id="itemClass" placeholder="備註">
+                        </td>
+                    </tr>
+                    <tr ng-repeat="men in PerS.dayPayList">
+                        <td style="padding:5px;font-size:14px;text-align:center">{{men.Name}}</td>
+                        <td style="padding:5px;font-size:14px;text-align:center">{{men.Date| date:'yyyy-MM-dd'}}</td>
+                        <td style="padding:5px;font-size:14px;text-align:center">{{men.Hours}} 小時</td>
+                        <td style="padding:5px;font-size:14px;text-align:center">{{men.Bonus}} 元</td>
+                        <td style="padding:5px;font-size:14px;text-align:left">Ps.{{men.Mark}}</td>
+                    </tr>
+                </table>
+                <button ng-click="PerS.dayPayPost()" type="submit" class="btn btn-primary">送出時數</button>
+            </div>
+        </div>
+        <div class="mem" style="float:none;display:none;width:100%">
+            <label style="font-size:22px;float:none" for="itemClass">員工資料</label>
+            <div class="form-group">
+                <table class="table table-hover table-striped" style="width:100%">
+                    <tr>
+                        <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                            <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">員工姓名</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">員工電話</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">身分證</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">時薪</label>
+                        </td>
+                        <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+
+                            <label style="font-size:14px;text-align:center;" class="col-md-12 col-xs-12 col-lg-12 col-xm-12">地址</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input ng-model="PerS.mem.Name" type="text" class="col-md-3 col-xs-3 col-lg-3 col-xm-3" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="員工姓名" ng-required="true">
+                            <input ng-model="PerS.mem.Phone" type="text" class="col-md-3 col-xs-3 col-lg-3 col-xm-3" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="員工電話" ng-required="true">
+                            <input ng-model="PerS.mem.Id" type="text" class="col-md-4 col-xs-4 col-lg-4 col-xm-4" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="身分證字號" ng-required="true">
+                            <input ng-model="PerS.mem.Salary" type="text" class="col-md-2 col-xs-2 col-lg-2 col-xm-2" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="時薪" ng-required="true">
+                        </td>
+                        <td>
+                            <input ng-model="PerS.mem.Addr" type="text" class="col-md-12 col-xs-12 col-lg-12 col-xm-12" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="地址" ng-required="true">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                            <label style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">職位</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">權限</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">到職日</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">緊急聯絡人</label>
+                        </td>
+                        <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                            <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">聯絡電話</label>
+                            <label style="font-size:14px;text-align:center;" class="col-md-9 col-xs-9 col-lg-9 col-xm-9">備註</label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input ng-model="PerS.mem.Job" type="text" class="col-md-2 col-xs-2 col-lg-2 col-xm-2" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="職位" disabled>
+                            <input ng-model="PerS.mem.Auth" type="text" class="col-md-2 col-xs-2 col-lg-2 col-xm-2" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="權限" disabled>
+                            <input ng-model="PerS.mem.StartDate" type="date" class="col-md-4 col-xs-4 col-lg-4 col-xm-4" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="到職日" ng-required="true">
+                            <input ng-model="PerS.mem.Parent" type="text" class="col-md-4 col-xs-4 col-lg-4 col-xm-4" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="緊急聯絡人" ng-required="true">
+                        </td>
+                        <td>
+                            <input ng-model="PerS.mem.ParentPhone" type="text" class="col-md-3 col-xs-3 col-lg-3 col-xm-3" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="聯絡人電話" ng-required="true">
+                            <input ng-model="PerS.mem.Mark" type="text" class="col-md-9 col-xs-9 col-lg-9 col-xm-9" id="itemClass" style="border-radius: 5px; height: 30px" placeholder="備註" ng-required="true">
+                        </td>
+                    </tr>
+                </table>
+                <button ng-click="PerS.MemPost()" type="submit" ng-show="mem.IsDelete!=1" class="btn btn-primary">確認員工資料</button>
+            </div>
+        </div>
+        <div>
+            <h3>查詢工時</h3>
+            <input ng-model="PerS.dayPayStart" type="text" id="start" value="起始日">
+            <input ng-model="PerS.dayPayEnd" type="text" id="end" value="結束日">
+            <select ng-model="PerS.dayPayUuid" ng-options=" man.Uuid as man.Name for man in PerS.memList " style="height:32px;text-align:center;border-radius: 5px" ng-required="true">
+                <option value="">--請選擇--</option>
+            </select>
+            <button ng-click="PerS.DayPaySelect()" type="submit" class="btn btn-primary">查詢工時</button>
+            <table class="table table-hover table-striped" style="width:100%">
+                <tr>
+                    <td style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2"><label style="font-size:14px;text-align:center;">工作日期</label></td>
+                    <td style="font-size:14px;text-align:center;" class="col-md-1 col-xs-1 col-lg-1 col-xm-1"><label style="font-size:14px;text-align:center;">時數</label></td>
+                    <td style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2"><label style="font-size:14px;text-align:center;">當時時薪</label></td>
+                    <td style="font-size:14px;text-align:center;" class="col-md-1 col-xs-1 col-lg-1 col-xm-1"><label style="font-size:14px;text-align:center;">獎金</label></td>
+                    <td style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2"><label style="font-size:14px;text-align:center;">當日薪資</label></td>
+                    <td style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4"><label style="font-size:14px;text-align:left;">備註</label></td>
+                </tr>
+                <tr ng-repeat="pay in PerS.monthPay">
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{pay.Date| date:'yyyy-MM-dd'}}</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{pay.Hours}}</label></td>
+                    <td style="font-size:14px;text-align:center;"><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:center;">x</label><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:right;">{{pay.pay}}</label><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:center;"></label></td>
+                    <td style="font-size:14px;text-align:center;"><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:center;">+</label><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:right;">{{pay.Bonus}}</label><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:center;"></label></td>
+                    <td style="font-size:14px;text-align:center;"><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:center;">=</label><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:right;">{{pay.Tot}}</label><label class="col-md-4 col-xs-4 col-lg-4 col-xm-4" style="font-size:14px;text-align:center;">元</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:left;">{{pay.Mark}}</label></td>
+                </tr>
+                <tr ng-show="PerS.helloworld==1">
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">期間單人累積時數</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{PerS.Hours}}</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">期間單人累積獎金</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{PerS.Bonus}}</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">期間單人累積薪資</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{PerS.Tot}}元</label></td>
+                </tr>
+                <tr ng-show="PerS.helloworld==1" ng-repeat="pay in PerS.totalPay">
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">期間總累積時數</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{pay.Hours}}</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">期間總累積獎金</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{pay.Bonus}}</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">期間總累積薪資</label></td>
+                    <td style="font-size:14px;text-align:center;"><label style="font-size:14px;text-align:center;">{{pay.Tot}}元</label></td>
+                </tr>
+            </table>
+        </div>
+        <div>
+            <table class="table table-hover table-striped">
+                <h3>員工基本資料</h3>
+                <tr>
+                    <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                        <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">名字</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">電話</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">時薪</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">聯絡人</label>
+                    </td>
+                    <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                        <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">聯絡電話</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">備註</label>
+                    </td>
+                </tr>
+                <tr ng-repeat="mem in PerS.memList">
+                    <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                        <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">{{mem.Name}}</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-4 col-xs-4 col-lg-4 col-xm-4">{{mem.Phone}}</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-2 col-xs-2 col-lg-2 col-xm-2">{{mem.Salary}}</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">{{mem.Parent}}</label>
+                    </td>
+                    <td style="font-size:16px;text-align:center" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">
+                        <label style="font-size:14px;text-align:center;" class="col-md-3 col-xs-3 col-lg-3 col-xm-3">{{mem.ParentPhone}}</label>
+                        <label style="font-size:14px;text-align:center;" class="col-md-6 col-xs-6 col-lg-6 col-xm-6">{{mem.Mark}}</label>
+                        <button ng-click="PerS.memUpdate(mem)" ng-show="mem.IsDelete!=1" type="submit" style="text-align:center;width:50px;" class="btn btn-info">修改</button>
+                        <button ng-click="PerS.memDelete(mem)" ng-show="mem.IsDelete!=1" type="submit" style="text-align:center;width:50px;" class="btn btn-danger">刪除</button>
+                        <button ng-click="PerS.memUpdate(mem)" ng-show="mem.IsDelete==1" type="submit" style="text-align:center;width:90px;" class="btn btn-pay">顯示資料</button>
+                    </td>
+
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!-- #region VVV損益表VVV -->
+    <div ng-if="main.isExpend" ng-controller="ExpendController as Exp">
+        <div>
+            <h3>選擇日期</h3>
+            <input ng-model="Exp.StartDay" type="text" id="start" style="border-radius: 5px; height: 35px" value="起始日">
+            <div ng-show="false">
+                {{Exp.StartDay = (Exp.StartDay| date:'yyyy-MM-dd') }}
+            </div>
+            <input ng-model="Exp.EndDay" type="text" id="end" style="border-radius: 5px; height: 35px" value="結束日">
+            <div ng-show="false">
+                {{Exp.EndDay = (Exp.EndDay| date:'yyyy-MM-dd') }}
+            </div>
+            <button ng-click="Exp.Post(Exp.StartDay,Exp.EndDay)" class="btn btn-info">選擇日期</button>
+        </div>
+        <div id="IncomeStatement">
+            <h2>損益表</h2>
+            <table class="table table-hover table-striped">
+                <tr>
+                    <td class="col-md-5 col-xs-5 col-lg-5 col-xm-5" style="text-align:center;">
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-4" style="text-align:left;font-size:22px;">項</label>
+                        <label class="col-xs-4" style="text-align:right;font-size:22px;">目</label>
+                        <label class="col-xs-1"></label>
+                    </td>
+                    <td class="col-md-7 col-xs-7 col-lg-7 col-xm-7" style="text-align:center;">
+                        <label class="col-xs-2" style="font-size:22px;text-align:right;">金　額</label>
+                        <label class="col-xs-5" style="font-size:22px;text-align:right;">百分比</label>
+                        <label class="col-xs-5" style="font-size:22px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-9" style="font-size:18px;text-align:left;">銷貨收入</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr ng-repeat="sAtiCE in Exp.ExpendList.A">
+                    <td>
+                        <label class="col-xs-2"></label>
+                        <label class="col-xs-8" style="font-size:16px;text-align:left;">{{sAtiCE.Name}}</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;">{{sAtiCE.Totle}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(sAtiCE.Totle)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-2"></label>
+                        <label class="col-xs-8" style="font-size:16px;text-align:right;">銷貨收入小計</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;border-top-style:solid ;border-color:black;border-width:1px">{{Exp.Atot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Atot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-9" style="font-size:18px;text-align:left;">銷貨折扣</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;">{{Exp.Dtot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Dtot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-9" style="font-size:18px;text-align:left;">銷貨淨額</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;border-top-style:solid ;border-color:black;border-width:1px">{{Exp.Atot-Exp.Dtot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Atot-Exp.Dtot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-9" style="font-size:18px;text-align:left;">銷貨成本</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr ng-repeat="sAtiCE in Exp.ExpendList.B">
+                    <td>
+                        <label class="col-xs-2"></label>
+                        <label class="col-xs-8" style="font-size:16px;text-align:left;">{{sAtiCE.Name}}</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;">{{sAtiCE.Totle}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(sAtiCE.Totle)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-2"></label>
+                        <label class="col-xs-8" style="font-size:16px;text-align:right;">銷貨成本小計</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;border-top-style:solid ;border-color:black;border-width:1px">{{Exp.Btot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Btot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-9" style="font-size:18px;text-align:left;">銷貨淨利</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;border-top-style:solid ;border-color:black;border-width:1px">{{Exp.Atot-Exp.Dtot-Exp.Btot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Atot-Exp.Dtot-Exp.Btot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-9" style="font-size:18px;text-align:left;">營業成本</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-2"></label>
+                        <label class="col-xs-8" style="font-size:16px;text-align:left;">人事成本</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr ng-repeat="sAtiCE in Exp.ExpendList.C">
+                    <td>
+                        <label class="col-xs-3"></label>
+                        <label class="col-xs-7" style="font-size:14px;text-align:left;">{{sAtiCE.Name}}</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;">{{sAtiCE.Totle}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(sAtiCE.Totle)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-2"></label>
+                        <label class="col-xs-8" style="font-size:16px;text-align:right;">人事小計</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;border-top-style:solid ;border-color:black;border-width:1px">{{Exp.Ctot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Ctot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-2"></label>
+                        <label class="col-xs-8" style="font-size:16px;text-align:left;">固定成本</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;">{{Exp.Etot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Etot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="col-xs-1"></label>
+                        <label class="col-xs-9" style="font-size:18px;text-align:left;">營業淨利</label>
+                        <label class="col-xs-2"></label>
+                    </td>
+                    <td>
+                        <label class="col-xs-2" style="font-size:16px;text-align:right;border-top-style:solid ;border-color:black;border-width:1px">{{Exp.Atot-Exp.Dtot-Exp.Btot-Exp.Ctot-Exp.Etot}}</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:right;">{{Exp.Percent(Exp.Atot-Exp.Dtot-Exp.Btot-Exp.Ctot-Exp.Etot)|number:2}} %</label>
+                        <label class="col-xs-5" style="font-size:16px;text-align:left;"></label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+    <!-- #endregion -->
+    <!-- #region VVV日營收VVV -->
+    <div style="height:90%" ng-if="main.isChart" ng-controller="BarCtrlController as menu">
+        <div style="width:100%; height: 46px">
+            <div ng-click="menu.chartshow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">圖表分析</div>
+            <div ng-click="menu.daytdshow()" style="font-size:18px;text-align:center;float:right; height: 46px ;width:106px;line-height:46px;padding:0; " class="btn btn-info ">日營收</div>
+        </div>
+
+        <div class="chart" style="display:none; width:100% ;height:90%">
+             
+                <div class="col-xs-5 col-sm-4" style="height:85%;overflow:scroll;">
+                    <button class="btn " ng-click="">周銷售 </button>
+                    <button class="btn btn-default" ng-click="">月銷售 </button>
+                    <button class="btn btn-default" ng-click="">年銷售</button>
+                    <table class="table table-hover table-striped col-lg-6" id="aaa">
+                        <tr>
+                            <td style="text-align:center">商品ID</td>
+                            <td style="text-align:center">商品名稱</td>
+                            <td style="text-align:center">顯示</td>
+
+                        </tr>
+                        <tr ng-repeat="(key,chartList) in menu.ChartList.data">
+                            <td style="text-align:center" class="col-lg-2" ng-bind="chartList.nameId"></td>
+                            <td style="text-align:center" class="col-lg-1" ng-bind="chartList.text"></td>
+                            <td style="text-align:center" class="col-lg-1"><input type="checkbox" ng-model="myJson.series[key].visible" data-ng-true-value="'true'" /></td>
+                        </tr>
+                    </table>
+                    <div></div>
+                
+            </div>
+            <div class="col-xs-7 col-sm-8" style="height:95% ;float:left"  >
+                
+                <div zingchart id="myChart" zc-render="myRender" zc-json="myJson" zc-height=100% zc-width=90%>
+                </div>
+            </div>
+        </div>
+
+        <div class="daytd" style="float:none;width:100%">
+            <table>
+                <tr>
+                    <td colspan="4">
+                        <button class="btn btn-default" ng-click="menu.Changeday(0)">今　天</button>
+                        <button class="btn btn-default" ng-click="menu.Changeday(1)">昨　天</button>
+                        <button class="btn btn-default" ng-click="menu.Changeday(2)">前　天</button>
+                        <input ng-model="menu.datepicker" ng-change="datechange()" type="text" id="datepicker" value="看其他天">
+                    </td>
+                </tr>
+            </table>
+            <table class="table table-hover table-striped col-lg-12" id="aaa">
+                <tr>
+                    <td style="text-align:center">商品</td>
+                    <td class="text-right">數量</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="text-right">單價</td>
+                    <td></td>
+                    <td class="text-right ">總和</td>
+
+                </tr>
+
+                <tr ng-repeat="report in menu.ReportList.data">
+
+                    <td style="text-align:center" class="col-lg-2" ng-bind="report.Name"></td>
+                    <td style="text-align:right" class="col-lg-1" ng-bind="report.count"></td>
+                    <td style="text-align:right" ng-bind="report.str1"></td>
+                    <td style="text-align:left" ng-bind="report.int1"></td>
+                    <td style="text-align:right" ng-bind="report.str2"></td>
+                    <td style="text-align:right" ng-bind="report.price"></td>
+                    <td style="text-align:right" ng-bind="report.str3"></td>
+                    <td style="text-align:right" ng-bind="report.tot"></td>
+                </tr>
+
+
+            </table>
+        </div>
+
+    </div>
+    <div class="flyover" ng-show="loading">
+        <div style="top: 0;
+    left: 0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    opacity: 0.5;
+    background: black;
+    z-index: 1049;" class="mask"></div>
+        <div style="z-index:2000; position:fixed; top:20% ;left:20%" class="alert alert-info">
+            <strong style="font-size:30pt">Loading !!!!!...</strong>
+        </div>
+    </div>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="./lib/angular/angular.min.js"></script>
+    <script src="./lib/chart/zingchart.min.js"></script>
+    <script src="./lib/chart/zingchart-angularjs.js"></script>
+    <script src="./lib/jquery/jquery.min.js"></script>
+    <script src="./lib/bootstrap/bootstrap.min.js"></script>
+    <script src="./lib/sweetalert/sweetalert.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/Controller.js"></script>
+    <script src="./js/Service.js"></script>
+    <script src="./js/phonegap.js"></script>
+    <script src="./js/network.js"></script>
+    <script src="./lib/jquery/jquery-ui.js"></script>
+    <script src="./lib/ngQueue.min.js"></script>
+    <script src="./lib/angular/angular-uuid.js"></script>
+    <style type="text/css">
+        .flyover .mask {
+            top: 0;
+            left: 0;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            opacity: 0.5;
+            background: black;
+            z-index: 1049;
+        }
+
+        .flyover .alert {
+            left: 50%;
+            top: 50%;
+            position: fixed;
+            z-index: 1050;
+        }
+    </style>
+</body>
+</html>
