@@ -4,7 +4,7 @@
     //var service = anguler.module('myService',[]);
 
 
-    location.href = "http://www.pchome.com.tw";
+
 
     app.config(['$httpProvider', function($httpProvider) {
         $httpProvider.defaults.timeout = 60000;
